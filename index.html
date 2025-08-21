@@ -5,15 +5,247 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AlienSearch.in</title>
   <script async src="https://cse.google.com/cse.js?cx=558d126f316374e94"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #000; color: #0f0; }
-    h1 { font-size: 3rem; margin-bottom: 10px; }
-    .gcse-search { max-width: 700px; margin: 20px auto; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url("2d1eb6e1-3d75-43e9-9435-54c9ba1b9d72.png") no-repeat center center fixed;
+      background-size: cover;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      color: #00ff99;
+      overflow-x: hidden;
+    }
+
+    /* ====== LOGO ====== */
+    .logo {
+      display: flex;
+      align-items: center;
+      margin-top: 30px;
+      z-index: 5;
+    }
+
+    .logo svg {
+      width: 60px;
+      height: 60px;
+      margin-right: 10px;
+      filter: drop-shadow(0 0 15px #0f0);
+    }
+
+    .logo-text {
+      font-size: 2.5rem;
+      font-family: 'Audiowide', cursive;
+      color: #00ff99;
+      text-shadow: 0 0 15px #0f0, 0 0 25px #0f0;
+    }
+
+    /* ====== Tagline ====== */
+    p.tagline {
+      font-size: 1.2rem;
+      margin: 10px 0 20px 0;
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    /* ====== SEARCH BAR (Google-style clone) ====== */
+    .gcse-search {
+      width: 100%;
+      max-width: 584px; /* same as Google */
+      margin: 0 auto 20px auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    input.gsc-input {
+      height: 50px !important;
+      font-size: 20px !important;
+      border-radius: 150px !important;
+      border: 1px solid #dfe1e5 !important;
+      padding: 0 40px !important;
+      box-sizing: border-box !important;
+      box-shadow: none !important;
+      width: 100% !important;
+      background: #fff !important;
+      color: #00000083 !important;
+    }
+
+    input.gsc-input:focus {
+      outline: none !important;
+      border: 1px solid #dfe1e5 !important;
+      box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28) !important;
+    }
+
+    .gsc-search-button-v2 {
+      display: none !important; /* hides the extra button, like Google */
+    }
+    .gsc-clear-button {
+      display: none !important;
+    }  
+
+
+    /* Dark Mode */
+    .toggle {
+      margin-top: 20px;
+      position: relative;
+      z-index: 2;
+    }
+    .toggle input { display: none; }
+    .slider {
+      background-color: #444;
+      border-radius: 34px;
+      cursor: pointer;
+      display: inline-block;
+      height: 24px;
+      position: relative;
+      width: 50px;
+    }
+    .slider::before {
+      background-color: #0f0;
+      border-radius: 50%;
+      bottom: 2px;
+      content: "";
+      left: 2px;
+      position: absolute;
+      height: 20px;
+      width: 20px;
+      transition: .4s;
+    }
+    input:checked + .slider::before { transform: translateX(26px); }
+    input:checked + .slider { background-color: #0a0; }
+
+    .dark-mode {
+      background: #000;
+      color: #0f0;
+    }
+
+    /* Canvas Background */
+    #alienBG {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
   </style>
 </head>
+
 <body>
-  <h1>AlienSearch.in</h1>
-  <p>Search UFOs, Aliens, Secret Projects & Paranormal Activities</p>
-  <div class="gcse-search"></div>
+  <!-- Alien Background -->
+  <canvas id="alienBG"></canvas>
+
+  <!-- Logo -->
+  <div class="logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#00ff99">
+      <circle cx="32" cy="32" r="30" stroke="#00ff99" stroke-width="2" fill="none"/>
+      <path d="M20 32c0-10 8-18 12-18s12 8 12 18-8 18-12 18-12-8-12-18z" stroke="#00ff99" stroke-width="2" fill="none"/>
+      <circle cx="28" cy="32" r="3" fill="#00ff99"/>
+      <circle cx="36" cy="32" r="3" fill="#00ff99"/>
+    </svg>
+    <span class="logo-text">AlienSearch.in</span>
+  </div>
+
+  <!-- Tagline -->
+  <p class="tagline">Search UFOs, Aliens, Secret Projects & Paranormal Activities</p>
+
+  <!-- Search Box -->
+  <div class="gcse-search" id="searchBox"></div>
+
+  <!-- Dark Mode Toggle -->
+  <div class="toggle">
+    <label>
+      <input type="checkbox" id="modeToggle" />
+      <span class="slider"></span>
+    </label>
+    <p>Dark Mode</p>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    /* Google Search Loader */
+    window.__gcse = { callback: function () {
+      const loader = document.getElementById('loader');
+      const btn = document.querySelector('.gsc-search-button');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          if (loader) loader.style.display = 'block';
+          const interval = setInterval(() => {
+            if (document.querySelector('iframe.gsc-results')) {
+              if (loader) loader.style.display = 'none';
+              clearInterval(interval);
+            }
+          }, 500);
+        });
+      }
+    }};
+
+    /* Dark Mode */
+    document.getElementById('modeToggle').addEventListener('change', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+     const canvas = document.getElementById("alienBG");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let stars = [];
+    for (let i = 0; i < 150; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2,
+        dx: (Math.random() - 0.5) * 0.5,
+        dy: (Math.random() - 0.5) * 0.5
+      });
+    }
+
+    function drawAlienAura(x, y) {
+      let gradient = ctx.createRadialGradient(x, y, 0, x, y, 80);
+      gradient.addColorStop(0, "rgba(0,255,0,0.8)");
+      gradient.addColorStop(1, "rgba(0,255,0,0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, 80, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function animate() {
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach(star => {
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fillStyle = "#0f0";
+        ctx.fill();
+
+        star.x += star.dx;
+        star.y += star.dy;
+
+        if (star.x < 0 || star.x > canvas.width) star.dx *= -1;
+        if (star.y < 0 || star.y > canvas.height) star.dy *= -1;
+      });
+
+      // Alien glowing auras
+      drawAlienAura(canvas.width / 2, canvas.height / 2);
+      drawAlienAura(canvas.width / 4, canvas.height / 3);
+      drawAlienAura((canvas.width * 3) / 4, (canvas.height * 2) / 3);
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
 </body>
 </html>
