@@ -11,15 +11,15 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: url("2d1eb6e1-3d75-43e9-9435-54c9ba1b9d72.png") no-repeat center center fixed;
+      background: #000 url("2d1eb6e1-3d75-43e9-9435-54c9ba1b9d72.png") no-repeat center center fixed;
       background-size: cover;
-      height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       color: #00ff99;
       overflow-x: hidden;
+      height: 100vh;
     }
 
     /* ====== LOGO ====== */
@@ -44,57 +44,99 @@
       text-shadow: 0 0 15px #0f0, 0 0 25px #0f0;
     }
 
-    /* ====== Tagline ====== */
     p.tagline {
       font-size: 1.2rem;
       margin: 10px 0 20px 0;
-      position: relative;
-      z-index: 2;
       text-align: center;
     }
 
-    /* ====== SEARCH BAR (Google-style clone) ====== */
-    .gcse-search {
-      width: 100%;
-      max-width: 584px; /* same as Google */
-      margin: 0 auto 20px auto;
-      position: relative;
-      z-index: 2;
+    /* ====== SEARCH BAR ====== */
+    .gsc-control-cse {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    .gsc-input-box {
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
     }
 
     input.gsc-input {
       height: 50px !important;
       font-size: 20px !important;
+      border: 2px solid #00ff99 !important;
       border-radius: 150px !important;
-      border: 1px solid #dfe1e5 !important;
-      padding: 0 40px !important;
-      box-sizing: border-box !important;
-      box-shadow: none !important;
+      padding: 0 20px !important;
       width: 100% !important;
-      background: #fff !important;
-      color: #00000083 !important;
+      background: #000 !important;
+      color: #00ff99 !important;
+      box-shadow: 0 0 20px #00ff99;
+      animation: pulseGlow 2s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 10px #00ff99; }
+      to { box-shadow: 0 0 25px #00ff99, 0 0 50px #00ff99; }
     }
 
     input.gsc-input:focus {
       outline: none !important;
-      border: 1px solid #dfe1e5 !important;
-      box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28) !important;
     }
 
-    .gsc-search-button-v2 {
-      display: none !important; /* hides the extra button, like Google */
-    }
+    .gsc-search-button-v2,
     .gsc-clear-button {
       display: none !important;
-    }  
+    }
 
+    .gs-title a {
+      color: #00ff99 !important;
+      text-decoration: none !important;
+      text-shadow: 0 0 8px #0f0;
+    }
+    .gs-title a:hover { color: #fff !important; }
+    .gs-snippet { color: #ccc !important; }
+    .gsc-url-bottom { color: #00cc66 !important; }
+
+    /* ====== LOADER ====== */
+    #loader {
+      margin-top: 15px;
+      font-size: 1.1rem;
+      text-align: center;
+      color: #00ff99;
+      text-shadow: 0 0 10px #0f0;
+      display: none;
+    }
+
+    /* ====== PARTICLES ====== */
+    #particles {
+      position: absolute;
+      top: 160px; /* just above search bar */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 120px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #0f0;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: float 5s infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) scale(1); opacity: 0.8; }
+      50% { transform: translateY(-30px) scale(1.2); opacity: 0.4; }
+      100% { transform: translateY(0) scale(1); opacity: 0.8; }
+    }
 
     /* Dark Mode */
-    .toggle {
-      margin-top: 20px;
-      position: relative;
-      z-index: 2;
-    }
+    .toggle { margin-top: 20px; }
     .toggle input { display: none; }
     .slider {
       background-color: #444;
@@ -119,25 +161,20 @@
     input:checked + .slider::before { transform: translateX(26px); }
     input:checked + .slider { background-color: #0a0; }
 
-    .dark-mode {
-      background: #000;
-      color: #0f0;
-    }
+    .dark-mode { background: #000; color: #0f0; }
 
-    /* Canvas Background */
+    /* Background */
     #alienBG {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: -1;
     }
   </style>
 </head>
 
 <body>
-  <!-- Alien Background -->
+  <!-- Background -->
   <canvas id="alienBG"></canvas>
 
   <!-- Logo -->
@@ -154,8 +191,13 @@
   <!-- Tagline -->
   <p class="tagline">Search UFOs, Aliens, Secret Projects & Paranormal Activities</p>
 
-  <!-- Search Box -->
-  <div class="gcse-search" id="searchBox"></div>
+  <!-- Particles around search -->
+  <div id="particles"></div>
+
+  <!-- Search Box + Results -->
+  <div class="gcse-searchbox-only"></div>
+  <p id="loader">👽 Scanning the Universe...</p>
+  <div class="gcse-searchresults-only"></div>
 
   <!-- Dark Mode Toggle -->
   <div class="toggle">
@@ -166,31 +208,33 @@
     <p>Dark Mode</p>
   </div>
 
-  <!-- Scripts -->
   <script>
-    /* Google Search Loader */
-    window.__gcse = { callback: function () {
-      const loader = document.getElementById('loader');
-      const btn = document.querySelector('.gsc-search-button');
-      if (btn) {
-        btn.addEventListener('click', () => {
-          if (loader) loader.style.display = 'block';
-          const interval = setInterval(() => {
-            if (document.querySelector('iframe.gsc-results')) {
-              if (loader) loader.style.display = 'none';
-              clearInterval(interval);
-            }
-          }, 500);
-        });
-      }
-    }};
-
     /* Dark Mode */
     document.getElementById('modeToggle').addEventListener('change', () => {
       document.body.classList.toggle('dark-mode');
     });
 
-     const canvas = document.getElementById("alienBG");
+    /* Alien Particles */
+    const particlesContainer = document.getElementById("particles");
+    for (let i = 0; i < 25; i++) {
+      let p = document.createElement("div");
+      p.className = "particle";
+      p.style.left = Math.random() * 100 + "%";
+      p.style.top = Math.random() * 100 + "%";
+      p.style.animationDelay = (Math.random() * 5) + "s";
+      particlesContainer.appendChild(p);
+    }
+
+    /* Loader text when searching */
+    document.addEventListener("click", function(e) {
+      if (e.target && e.target.tagName === "INPUT" && e.target.classList.contains("gsc-input")) {
+        document.getElementById("loader").style.display = "block";
+        setTimeout(() => { document.getElementById("loader").style.display = "none"; }, 4000);
+      }
+    });
+
+    /* Alien background stars */
+    const canvas = document.getElementById("alienBG");
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -233,11 +277,7 @@
         if (star.y < 0 || star.y > canvas.height) star.dy *= -1;
       });
 
-      // Alien glowing auras
       drawAlienAura(canvas.width / 2, canvas.height / 2);
-      drawAlienAura(canvas.width / 4, canvas.height / 3);
-      drawAlienAura((canvas.width * 3) / 4, (canvas.height * 2) / 3);
-
       requestAnimationFrame(animate);
     }
     animate();
